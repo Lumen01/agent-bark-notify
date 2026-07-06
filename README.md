@@ -7,18 +7,22 @@ This repository is a skill first. The notification helper is a bundled script at
 
 ## Install The Skill
 
-Recommended shared location:
+### For Multiple Agents
+
+If you want Codex, Claude, OpenCode, and other agents to share this skill, install
+it once under `~/.agents`:
 
 ```bash
 git clone https://github.com/Lumen01/agent-bark-notify.git ~/.agents/skills/bark-notify
 ```
 
-This repository is not Codex-specific. Codex, Claude, OpenCode, and other agents
-can use it as long as their runtime can load a directory whose root contains
-`SKILL.md`.
+Then point each agent runtime at that shared copy if the runtime needs its own
+skills directory.
 
-If an agent requires a runtime-specific skills directory, symlink or copy the
-shared skill into that directory. Examples:
+### For One Specific Agent
+
+If you only want one agent to use this skill, install or link it into that
+agent's own skills directory. Examples:
 
 ```bash
 mkdir -p ~/.codex/skills
@@ -29,7 +33,7 @@ ln -sf ~/.agents/skills/bark-notify ~/.claude/skills/bark-notify
 ```
 
 For OpenCode or other agents, use the equivalent skills directory documented by
-that runtime.
+that runtime. The only requirement is that the skill root contains `SKILL.md`.
 
 ## Configure Secrets
 
