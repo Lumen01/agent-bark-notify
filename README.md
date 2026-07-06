@@ -1,25 +1,24 @@
-# Agent Bark Notify
+# Bark Notify Skill
 
-Agent-aware CLI for sending [Bark](https://github.com/Finb/Bark) push notifications.
+Skill for sending [Bark](https://github.com/Finb/Bark) push notifications from agents.
 
-The tool keeps Bark server/key configuration local, while allowing each agent
-such as Codex, Claude, CI, or cron to use its own notification group and icon.
+This repository is a skill first. The notification helper is a bundled script at
+`scripts/bark-notify.py`, not a standalone package that must be installed from PyPI.
 
-## Install
-
-```bash
-python3 -m pip install .
-```
-
-For local development:
+## Install The Skill
 
 ```bash
-python3 -m pip install -e .
+git clone https://github.com/Lumen01/agent-bark-notify.git ~/.codex/skills/bark-notify
 ```
 
-## Configure
+For agents that use a different skills directory, clone the repository into that
+runtime's skill folder while keeping `SKILL.md` at the skill root.
 
-Create `~/.config/bark-notify.env`:
+## Configure Secrets
+
+Keep Bark credentials local and private. Do not commit real keys.
+
+Create `~/.config/bark-notify.env` manually:
 
 ```env
 BARK_SERVER="https://api.day.app"
@@ -30,10 +29,8 @@ BARK_GROUP="Agents"
 Or initialize it with:
 
 ```bash
-bark-notify --save-config --server "https://api.day.app" --key "your-bark-device-key"
+python3 ~/.codex/skills/bark-notify/scripts/bark-notify.py --save-config --server "https://api.day.app" --key "your-bark-device-key"
 ```
-
-Do not commit real Bark keys.
 
 ## Agent Identity
 
@@ -59,19 +56,27 @@ BARK_AGENT_CODEX_GROUP="Codex"
 BARK_AGENT_CODEX_ICON="https://example.com/icons/codex.png"
 ```
 
-## Usage
+## Agent Usage
+
+After the skill is installed, an agent should load `SKILL.md` and run the bundled
+script relative to the skill directory:
 
 ```bash
-bark-notify "Title" "Body"
-bark-notify Title Body words without quoting the body
-bark-notify --agent codex "Build finished" "Codex completed the requested task"
-bark-notify --agent codex --group Custom --icon "https://example.com/custom.png" "Title" "Body"
-bark-notify --ping
+python3 scripts/bark-notify.py "Title" "Body"
+python3 scripts/bark-notify.py --agent codex "Build finished" "Codex completed the requested task"
+python3 scripts/bark-notify.py --ping
 ```
 
-## Test
+If the user wants a shell command, they may optionally create a local wrapper:
 
 ```bash
-PYTHONPATH=src python3 -m unittest discover -s tests
+mkdir -p ~/.local/bin
+ln -sf ~/.codex/skills/bark-notify/scripts/bark-notify.py ~/.local/bin/bark-notify
 ```
 
+## Develop And Test
+
+```bash
+python3 -m unittest discover -s tests
+python3 -m py_compile scripts/bark-notify.py tests/test_cli.py
+```

@@ -1,10 +1,17 @@
 import os
+import importlib.machinery
+import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
-from agent_bark_notify import cli
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = ROOT / "scripts" / "bark-notify.py"
+loader = importlib.machinery.SourceFileLoader("bark_notify_under_test", str(SCRIPT))
+spec = importlib.util.spec_from_loader(loader.name, loader)
+cli = importlib.util.module_from_spec(spec)
+loader.exec_module(cli)
 
 
 def run_main(argv, env=None, config_path=None, agents_path=None):
