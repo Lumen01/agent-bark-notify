@@ -120,7 +120,7 @@ def build_parser(config_path: Path) -> argparse.ArgumentParser:
     parser.add_argument("--icon", default=None, help="notification icon URL")
     parser.add_argument("--url", default=None, help="URL opened when tapping the notification")
     parser.add_argument("--copy", default=None, help="text copied by Bark")
-    parser.add_argument("--level", choices=["active", "timeSensitive", "passive"], default=None)
+    parser.add_argument("--level", choices=["passive", "active", "timeSensitive", "critical"], default=None)
     parser.add_argument("--badge", type=int, default=None)
     parser.add_argument("--ping", action="store_true", help="check server health without sending a notification")
     parser.add_argument("--save-config", action="store_true", help=f"save server/key defaults to {config_path}")

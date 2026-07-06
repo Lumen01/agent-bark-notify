@@ -84,9 +84,33 @@ script relative to the skill directory:
 
 ```bash
 python3 scripts/bark-notify.py "Title" "Body"
-python3 scripts/bark-notify.py --agent codex "Build finished" "Codex completed the requested task"
+python3 scripts/bark-notify.py --agent codex --level passive "Build finished" "Codex completed the requested task"
 python3 scripts/bark-notify.py --ping
 ```
+
+## Notification Levels
+
+The skill uses Bark's notification interruption levels:
+
+| Situation | Level |
+| --- | --- |
+| Agent completed work, tests passed, background status, FYI | `passive` |
+| User explicitly asked for a normal notification | `active` |
+| Agent is blocked and needs user input soon | `timeSensitive` |
+| Deployment failed, service unavailable, long task crashed | `timeSensitive` |
+| User explicitly requested an emergency/critical alert | `critical` |
+
+Agent-initiated "I finished" notifications should usually be `passive`.
+Use `timeSensitive` only when the user should notice promptly. Use `critical`
+only for explicit emergency/critical requests.
+
+On iOS, Bark must be allowed to deliver the corresponding notification type:
+
+- Open iOS Settings, then Notifications, then Bark.
+- Enable notifications for Bark.
+- Enable Time Sensitive Notifications if you want `timeSensitive` alerts to break through Focus modes.
+- Enable Critical Alerts if Bark shows that option and you intend to use `critical`.
+- Focus modes can still affect what appears immediately; allow Bark in the relevant Focus if needed.
 
 If the user wants a shell command, they may optionally create a local wrapper:
 

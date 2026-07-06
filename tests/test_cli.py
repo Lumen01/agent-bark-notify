@@ -82,6 +82,14 @@ class BarkNotifyCliTest(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "Missing Bark key"):
                 run_main(["Title", "Body"], config_path=config)
 
+    def test_level_is_included_in_payload(self):
+        for level in ("passive", "active", "timeSensitive", "critical"):
+            with self.subTest(level=level):
+                rc, calls = run_main(["--level", level, "Title", "Body"], env={"BARK_KEY": "test-key"})
+
+                self.assertEqual(rc, 0)
+                self.assertEqual(calls[0][1]["level"], level)
+
     def test_save_config_writes_private_file(self):
         with tempfile.TemporaryDirectory() as td:
             config = Path(td) / "bark-notify.env"
