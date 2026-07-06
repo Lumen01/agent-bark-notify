@@ -7,12 +7,29 @@ This repository is a skill first. The notification helper is a bundled script at
 
 ## Install The Skill
 
+Recommended shared location:
+
 ```bash
-git clone https://github.com/Lumen01/agent-bark-notify.git ~/.codex/skills/bark-notify
+git clone https://github.com/Lumen01/agent-bark-notify.git ~/.agents/skills/bark-notify
 ```
 
-For agents that use a different skills directory, clone the repository into that
-runtime's skill folder while keeping `SKILL.md` at the skill root.
+This repository is not Codex-specific. Codex, Claude, OpenCode, and other agents
+can use it as long as their runtime can load a directory whose root contains
+`SKILL.md`.
+
+If an agent requires a runtime-specific skills directory, symlink or copy the
+shared skill into that directory. Examples:
+
+```bash
+mkdir -p ~/.codex/skills
+ln -sf ~/.agents/skills/bark-notify ~/.codex/skills/bark-notify
+
+mkdir -p ~/.claude/skills
+ln -sf ~/.agents/skills/bark-notify ~/.claude/skills/bark-notify
+```
+
+For OpenCode or other agents, use the equivalent skills directory documented by
+that runtime.
 
 ## Configure Secrets
 
@@ -29,7 +46,7 @@ BARK_GROUP="Agents"
 Or initialize it with:
 
 ```bash
-python3 ~/.codex/skills/bark-notify/scripts/bark-notify.py --save-config --server "https://api.day.app" --key "your-bark-device-key"
+python3 ~/.agents/skills/bark-notify/scripts/bark-notify.py --save-config --server "https://api.day.app" --key "your-bark-device-key"
 ```
 
 ## Agent Identity
@@ -71,7 +88,7 @@ If the user wants a shell command, they may optionally create a local wrapper:
 
 ```bash
 mkdir -p ~/.local/bin
-ln -sf ~/.codex/skills/bark-notify/scripts/bark-notify.py ~/.local/bin/bark-notify
+ln -sf ~/.agents/skills/bark-notify/scripts/bark-notify.py ~/.local/bin/bark-notify
 ```
 
 ## Develop And Test
