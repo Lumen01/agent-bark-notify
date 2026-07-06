@@ -35,6 +35,20 @@ ln -sf ~/.agents/skills/bark-notify ~/.claude/skills/bark-notify
 For OpenCode or other agents, use the equivalent skills directory documented by
 that runtime. The only requirement is that the skill root contains `SKILL.md`.
 
+## Prompt Agents To Use It
+
+Installing the skill only makes it available. To make agents use it proactively,
+add this instruction to a global or project-level `AGENTS.md`, depending on
+where you want the behavior:
+
+```markdown
+- Use the bark-notify SKILL to update the user on progress, especially when handling time-consuming tasks.
+```
+
+Put it in a global `AGENTS.md` when you want progress notifications across many
+projects. Put it in a project `AGENTS.md` when only that repository should use
+Bark progress updates.
+
 ## Configure Secrets
 
 Keep Bark credentials local and private. Do not commit real keys.
