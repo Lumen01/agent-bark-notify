@@ -1,0 +1,11 @@
+{
+  "codex": {
+    "group": "Codex",
+    "icon": "https://example.com/icons/codex.png"
+  },
+  "claude": {
+    "group": "Claude",
+    "icon": "https://example.com/icons/claude.png"
+  }
+}
+

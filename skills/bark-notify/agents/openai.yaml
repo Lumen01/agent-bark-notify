@@ -1,0 +1,5 @@
+interface:
+  display_name: "Bark Notify"
+  short_description: "Send Bark notifications from agents"
+  default_prompt: "Use $bark-notify to send a concise notification with a title and body."
+
