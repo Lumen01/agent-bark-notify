@@ -1,5 +1,7 @@
 # Bark Notify Skill
 
+[中文文档](README.zh-CN.md)
+
 Skill for sending [Bark](https://github.com/Finb/Bark) push notifications from agents.
 
 This repository is a skill first. The notification helper is a bundled script at
@@ -7,7 +9,19 @@ This repository is a skill first. The notification helper is a bundled script at
 
 ## Install The Skill
 
-### For Multiple Agents
+### Ask an Agent to Install It
+
+Paste this prompt into an agent that has terminal access:
+
+```text
+Read https://github.com/Lumen01/agent-bark-notify/blob/main/README.md and install Bark Notify Skill by following its “Install Manually” section. Prefer the shared multi-agent installation unless I ask for a single runtime. Check for an existing installation before changing files, expose the skill to the requested runtime, and confirm that its SKILL.md is discoverable. Do not configure, print, commit, or place a Bark device key in shell history.
+```
+
+### Install Manually
+
+The following instructions are for people who prefer to install the skill themselves.
+
+#### For Multiple Agents
 
 If you want Codex, Claude, OpenCode, and other agents to share this skill, install
 it once under `~/.agents`:
@@ -19,7 +33,7 @@ git clone https://github.com/Lumen01/agent-bark-notify.git ~/.agents/skills/bark
 Then point each agent runtime at that shared copy if the runtime needs its own
 skills directory.
 
-### For One Specific Agent
+#### For One Specific Agent
 
 If you only want one agent to use this skill, install or link it into that
 agent's own skills directory. Examples:
