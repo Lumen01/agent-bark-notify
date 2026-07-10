@@ -53,7 +53,7 @@ Bark progress updates.
 
 Keep Bark credentials local and private. Do not commit real keys.
 
-Create `~/.config/bark-notify.env` manually:
+Create `~/.config/bark-notify.env` manually. This is the preferred setup because the key never appears in a command or shell history:
 
 ```env
 BARK_SERVER="https://api.day.app"
@@ -61,10 +61,12 @@ BARK_KEY="your-bark-device-key"
 BARK_GROUP="Agents"
 ```
 
-Or initialize it with:
+Or initialize it by securely reading the key from standard input:
 
 ```bash
-python3 ~/.agents/skills/bark-notify/scripts/bark-notify.py --save-config --server "https://api.day.app" --key "your-bark-device-key"
+read -rs BARK_KEY; printf '\n'
+printf '%s\n' "$BARK_KEY" | python3 ~/.agents/skills/bark-notify/scripts/bark-notify.py --save-config --key-stdin
+unset BARK_KEY
 ```
 
 ## Agent Identity
@@ -98,8 +100,11 @@ script relative to the skill directory:
 
 ```bash
 python3 scripts/bark-notify.py "Title" "Body"
-python3 scripts/bark-notify.py --agent codex --level passive "Build finished" "Codex completed the requested task"
+python3 scripts/bark-notify.py --agent codex --level active "Build finished" "Codex completed the requested task"
+python3 scripts/bark-notify.py --agent codex --level passive "Progress update" "Tests are running"
 python3 scripts/bark-notify.py --ping
+python3 scripts/bark-notify.py --doctor
+python3 scripts/bark-notify.py --dry-run --agent codex --level active "Build finished" "Ready"
 ```
 
 ## Notification Levels
@@ -108,15 +113,17 @@ The skill uses Bark's notification interruption levels:
 
 | Situation | Level |
 | --- | --- |
-| Agent completed work, tests passed, background status, FYI | `passive` |
-| User explicitly asked for a normal notification | `active` |
+| Progress update, background status, FYI | `passive` |
+| Requested task completed, or user explicitly asked for a normal notification | `active` |
 | Agent is blocked and needs user input soon | `timeSensitive` |
 | Deployment failed, service unavailable, long task crashed | `timeSensitive` |
 | User explicitly requested an emergency/critical alert | `critical` |
 
-Agent-initiated "I finished" notifications should usually be `passive`.
-Use `timeSensitive` only when the user should notice promptly. Use `critical`
-only for explicit emergency/critical requests.
+`passive` only enters Notification Center and does not light the screen. `active`
+is Bark's normal visible notification and should be used for user-requested task
+completion. `timeSensitive` can appear during a Focus mode when Bark and iOS
+are authorized for it. `critical` can ignore silent/Focus modes and should only
+be used for a real incident or an explicit emergency request.
 
 On iOS, Bark must be allowed to deliver the corresponding notification type:
 
@@ -132,6 +139,13 @@ If the user wants a shell command, they may optionally create a local wrapper:
 mkdir -p ~/.local/bin
 ln -sf ~/.agents/skills/bark-notify/scripts/bark-notify.py ~/.local/bin/bark-notify
 ```
+
+## Diagnose Before Sending
+
+Use `--doctor` when an agent, icon, group, or server does not behave as
+expected. It reports the resolved configuration and pings Bark without exposing
+the device key. Use `--dry-run` to inspect the final push payload without
+sending; the device key is always shown as `***`.
 
 ## Develop And Test
 
