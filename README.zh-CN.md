@@ -142,6 +142,18 @@ ln -sf ~/.agents/skills/bark-notify/scripts/bark-notify.py ~/.local/bin/bark-not
 
 当 Agent、图标、分组或服务器行为不符合预期时，使用 `--doctor`。它会输出解析后的配置并 ping Bark，但不会暴露 device key。使用 `--dry-run` 可查看最终推送 payload 而不实际发送；其中 device key 始终显示为 `***`。
 
+## 自动发布到 ClawHub
+
+`.github/workflows/clawhub-publish.yml` 会在相关文件推送到 `main` 时自动发布本技能。它使用 ClawHub 官方可复用工作流：未变更内容会被跳过；技能有变更时会自动发布下一个 patch 版本。
+
+首次运行前，请添加名为 `CLAWHUB_TOKEN` 的仓库 Actions Secret：
+
+1. 以该技能所有者身份登录 ClawHub，在网页中创建 ClawHub API token。
+2. 在 GitHub 仓库打开 **Settings → Secrets and variables → Actions**，新建名为 `CLAWHUB_TOKEN` 的 Secret，并填入该 token。
+3. 在 Actions 页面手动运行一次 **Publish Bark Notify to ClawHub**，或向 `main` 推送相关改动。
+
+该 token 只会传给发布工作流，绝不能提交到仓库。
+
 ## 开发与测试
 
 ```bash

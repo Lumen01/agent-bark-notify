@@ -161,6 +161,25 @@ expected. It reports the resolved configuration and pings Bark without exposing
 the device key. Use `--dry-run` to inspect the final push payload without
 sending; the device key is always shown as `***`.
 
+## Automatic ClawHub Publishing
+
+The GitHub Actions workflow at `.github/workflows/clawhub-publish.yml` publishes
+this skill whenever relevant files are pushed to `main`. It uses ClawHub's
+official reusable workflow, which skips unchanged content and automatically
+creates the next patch version when the skill changed.
+
+Before the first run, add a repository Actions secret named `CLAWHUB_TOKEN`:
+
+1. Create a ClawHub API token from the ClawHub web UI while signed in as the
+   owner of this skill.
+2. In GitHub, open **Settings → Secrets and variables → Actions** for this
+   repository and create the `CLAWHUB_TOKEN` secret with that value.
+3. Run **Publish Bark Notify to ClawHub** once from the Actions tab, or push a
+   relevant change to `main`.
+
+The token is only passed to the publishing workflow and must never be committed
+to this repository.
+
 ## Develop And Test
 
 ```bash
