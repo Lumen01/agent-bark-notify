@@ -1,0 +1,27 @@
+name: Publish Bark Notify to ClawHub
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - SKILL.md
+      - scripts/**
+      - examples/**
+      - agents/**
+      - README.md
+      - README.zh-CN.md
+      - .github/workflows/clawhub-publish.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    uses: openclaw/clawhub/.github/workflows/skill-publish.yml@v1
+    with:
+      skill_path: .
+      dry_run: false
+      ref: ${{ github.sha }}
+    secrets:
+      clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
