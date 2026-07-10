@@ -19,7 +19,11 @@ def load_env_file(path: Path) -> dict[str, str]:
     values: dict[str, str] = {}
     if not path.exists():
         return values
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise SystemExit(f"Unable to read Bark config {path}: {exc.strerror or exc}") from exc
+    for raw_line in content.splitlines():
         line = raw_line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
@@ -34,7 +38,12 @@ def load_env_file(path: Path) -> dict[str, str]:
 def load_agents_file(path: Path) -> dict[str, dict[str, str]]:
     if not path.exists():
         return {}
-    data = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid agent JSON in {path} at line {exc.lineno}, column {exc.colno}: {exc.msg}") from exc
+    except OSError as exc:
+        raise SystemExit(f"Unable to read agent config {path}: {exc.strerror or exc}") from exc
     if not isinstance(data, dict):
         raise SystemExit(f"Agent config must be an object: {path}")
     agents: dict[str, dict[str, str]] = {}
@@ -74,12 +83,43 @@ def env_agent_key(agent: str, suffix: str) -> str:
     return f"BARK_AGENT_{normalized}_{suffix}"
 
 
-def agent_value(agent: str, field: str, cfg: dict[str, str], agents: dict[str, dict[str, str]]) -> str | None:
+def agent_value(agent: str, field: str, cfg: dict[str, str], agents: dict[str, dict[str, str]]) -> tuple[str | None, str]:
     if not agent:
-        return None
+        return None, "not configured"
     normalized = normalize_agent(agent)
     env_key = env_agent_key(normalized, field.upper())
-    return os.environ.get(env_key, cfg.get(env_key, agents.get(normalized, {}).get(field)))
+    if value := os.environ.get(env_key):
+        return value, "environment"
+    if value := cfg.get(env_key):
+        return value, "config"
+    if value := agents.get(normalized, {}).get(field):
+        return value, "agent config"
+    return None, "not configured"
+
+
+def config_permission(path: Path) -> str:
+    if not path.exists():
+        return "not found"
+    try:
+        return oct(path.stat().st_mode & 0o777)
+    except OSError as exc:
+        return f"unreadable: {exc.strerror or exc}"
+
+
+def build_payload(key: str, title: str, body: list[str], group: str, args: argparse.Namespace, icon: str | None) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "device_key": key,
+        "title": title,
+        "body": " ".join(body),
+        "group": group,
+    }
+    for name in ("sound", "icon", "url", "copy", "level", "badge"):
+        value = getattr(args, name)
+        if value is not None:
+            payload[name] = value
+    if "icon" not in payload and icon:
+        payload["icon"] = icon
+    return payload
 
 
 def request_json(url: str, payload: dict[str, Any] | None = None, timeout: int = 15) -> dict[str, Any]:
@@ -122,6 +162,9 @@ def build_parser(config_path: Path) -> argparse.ArgumentParser:
     parser.add_argument("--copy", default=None, help="text copied by Bark")
     parser.add_argument("--level", choices=["passive", "active", "timeSensitive", "critical"], default=None)
     parser.add_argument("--badge", type=int, default=None)
+    parser.add_argument("--dry-run", action="store_true", help="print the final payload with the device key masked; do not send")
+    parser.add_argument("--doctor", action="store_true", help="report resolved configuration and server ping without exposing the device key")
+    parser.add_argument("--key-stdin", action="store_true", help="read the Bark device key from standard input instead of command-line arguments")
     parser.add_argument("--ping", action="store_true", help="check server health without sending a notification")
     parser.add_argument("--save-config", action="store_true", help=f"save server/key defaults to {config_path}")
     return parser
@@ -142,15 +185,29 @@ def main(
     selected_agents_path = Path(args.agents_file).expanduser() if args.agents_file else agents_path
     agents = load_agents_file(selected_agents_path)
 
+    stdin_key = sys.stdin.readline().rstrip("\r\n") if args.key_stdin else ""
     server = (args.server or os.environ.get("BARK_SERVER") or cfg.get("BARK_SERVER") or DEFAULT_SERVER).rstrip("/")
-    key = args.key or os.environ.get("BARK_KEY") or cfg.get("BARK_KEY", "")
+    key = args.key or stdin_key or os.environ.get("BARK_KEY") or cfg.get("BARK_KEY", "")
     agent = args.agent or os.environ.get("BARK_AGENT") or cfg.get("BARK_AGENT", "")
+    agent_group, agent_group_source = agent_value(agent, "group", cfg, agents)
+    agent_icon, agent_icon_source = agent_value(agent, "icon", cfg, agents)
     group = (
         args.group
-        or agent_value(agent, "group", cfg, agents)
+        or agent_group
         or os.environ.get("BARK_GROUP")
         or cfg.get("BARK_GROUP")
         or "Agents"
+    )
+    group_source = (
+        "command line"
+        if args.group
+        else agent_group_source
+        if agent_group
+        else "environment"
+        if os.environ.get("BARK_GROUP")
+        else "config"
+        if cfg.get("BARK_GROUP")
+        else "default"
     )
 
     if args.save_config:
@@ -165,25 +222,31 @@ def main(
         print(json.dumps(result, ensure_ascii=False))
         return 0 if int(result.get("code", 0)) == 200 else 1
 
+    if args.doctor:
+        ping = request_json(f"{server}/ping")
+        report = {
+            "server": server,
+            "key_configured": bool(key),
+            "config_file": {"path": str(config_path), "permissions": config_permission(config_path)},
+            "agents_file": {"path": str(selected_agents_path), "configured": selected_agents_path.exists()},
+            "agent": {"name": agent or None, "configured": normalize_agent(agent) in agents if agent else False},
+            "group": {"value": group, "source": group_source},
+            "icon": {"value": args.icon or agent_icon, "source": "command line" if args.icon else agent_icon_source},
+            "ping": ping,
+        }
+        print(json.dumps(report, ensure_ascii=False))
+        return 0 if int(ping.get("code", 0)) == 200 else 1
+
     if not key:
         raise SystemExit(f"Missing Bark key. Put BARK_KEY=... in {config_path} or export BARK_KEY.")
     if not args.title:
-        parser.error("title is required unless --ping or --save-config is used")
+        parser.error("title is required unless --ping, --doctor, or --save-config is used")
 
-    payload: dict[str, Any] = {
-        "device_key": key,
-        "title": args.title,
-        "body": " ".join(args.body),
-        "group": group,
-    }
-    for name in ("sound", "icon", "url", "copy", "level", "badge"):
-        value = getattr(args, name)
-        if value is not None:
-            payload[name] = value
-    if "icon" not in payload:
-        icon = agent_value(agent, "icon", cfg, agents)
-        if icon:
-            payload["icon"] = icon
+    payload = build_payload(key, args.title, args.body, group, args, agent_icon)
+    if args.dry_run:
+        preview = {**payload, "device_key": "***"}
+        print(json.dumps(preview, ensure_ascii=False))
+        return 0
 
     result = request_json(f"{server}/push", payload)
     print(json.dumps(result, ensure_ascii=False))
