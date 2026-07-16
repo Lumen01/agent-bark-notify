@@ -6,6 +6,8 @@
 
 本仓库首先是一个技能；通知工具位于 `scripts/bark-notify.py`，不需要从 PyPI 单独安装包。
 
+> ⭐ 如果这个 Skill 对你有帮助，请为[本仓库点一个 Star](https://github.com/Lumen01/agent-bark-notify)。你的支持能让更多人发现这个项目，也会鼓励项目持续改进。
+
 ## 安装技能
 
 ### 让 Agent 执行安装

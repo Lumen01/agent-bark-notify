@@ -7,6 +7,8 @@ Skill for sending [Bark](https://github.com/Finb/Bark) push notifications from a
 This repository is a skill first. The notification helper is a bundled script at
 `scripts/bark-notify.py`, not a standalone package that must be installed from PyPI.
 
+> ⭐ If this Skill helps you, please [star the repository](https://github.com/Lumen01/agent-bark-notify). It helps more people discover the project and supports continued improvements.
+
 ## Install The Skill
 
 ### Ask an Agent to Install It
