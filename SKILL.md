@@ -1,6 +1,8 @@
 ---
 name: bark-notify
 description: Use when the user asks an agent to send a Bark push notification, notify them from the terminal, test Bark notification delivery, or use a Bark notification skill.
+metadata:
+  author: "Lumen"
 ---
 
 # Bark Notify
