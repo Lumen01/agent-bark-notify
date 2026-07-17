@@ -29,7 +29,7 @@ Run the bundled script from this skill directory:
 python3 scripts/bark-notify.py "Title" "Body"
 python3 scripts/bark-notify.py Title Body words without quoting the body
 python3 scripts/bark-notify.py --agent codex --level active "Build finished" "Codex completed the requested task"
-python3 scripts/bark-notify.py --agent codex --level passive "Progress update" "Tests are running"
+python3 scripts/bark-notify.py --agent codex --level active "Milestone reached" "The first migration finished"
 ```
 
 Use explicit overrides only when requested:
@@ -38,22 +38,35 @@ Use explicit overrides only when requested:
 python3 scripts/bark-notify.py --agent codex --group Custom --icon "https://example.com/custom.png" "Title" "Body"
 ```
 
+## Decide Whether to Send
+
+A progress-update instruction grants permission to send useful notifications; it does not make every agent update notification-worthy.
+
+Send a Bark notification when at least one of these is true:
+
+- The user explicitly asked for a Bark notification or reminder.
+- A long-running task reached a meaningful milestone or completed while the user may be away.
+- The agent is blocked, a long-running task failed, or the user needs to act.
+
+Skip Bark for routine tool activity, short tasks, tests merely starting or continuing, partial findings, and updates already visible in the active conversation. If an update is too minor for a normal visible notification, usually do not send it. Use `passive` only when the user explicitly asks for a quiet, passive, background, or Notification Center-only delivery.
+
 ## Notification Level
 
-Choose the lowest Bark interruption level that fits the situation:
+After deciding to send, choose the level from this table. Use `active` when the user did not specify a level and the situation does not require `timeSensitive` or `critical`:
 
 | Situation | Level |
 | --- | --- |
-| Progress update, background status, FYI | `passive` |
-| Requested task completed, or user explicitly asked for a normal notification | `active` |
+| Meaningful progress, requested task completed, or ordinary user-requested notification | `active` |
 | Agent is blocked and needs user input soon | `timeSensitive` |
 | Deployment failed, service is unavailable, long task crashed | `timeSensitive` |
 | User explicitly requested an emergency/critical alert | `critical` |
+| User explicitly requested quiet/background delivery | `passive` |
 
 Rules:
 
-- Default to `active` when notifying that a user-requested task is complete. It is a normal visible notification.
-- Use `passive` for intermediate progress updates that should not light up the screen.
+- Default to `active` whenever a notification is worth sending, including meaningful progress and task completion.
+- Do not use `passive` as a low-stakes default or a fallback for routine progress. Skip the push instead.
+- Use `passive` only when the user explicitly requests quiet/background delivery.
 - Use `timeSensitive` only when the user should notice promptly.
 - Use `critical` only when explicitly requested or clearly safety/incident critical; do not use it for routine task failures.
 - If the user specifies a level, obey the user.
