@@ -58,7 +58,7 @@ add this instruction to a global or project-level `AGENTS.md`, depending on
 where you want the behavior:
 
 ```markdown
-- Use the bark-notify SKILL to update the user on progress, especially when handling time-consuming tasks.
+- Use the bark-notify SKILL for meaningful milestones, completion, and blockers during time-consuming tasks. Default to active; skip routine progress; use passive only when explicitly requested.
 ```
 
 Put it in a global `AGENTS.md` when you want progress notifications across many
@@ -121,7 +121,7 @@ script relative to the skill directory:
 ```bash
 python3 scripts/bark-notify.py "Title" "Body"
 python3 scripts/bark-notify.py --agent codex --level active "Build finished" "Codex completed the requested task"
-python3 scripts/bark-notify.py --agent codex --level passive "Progress update" "Tests are running"
+python3 scripts/bark-notify.py --agent codex --level active "Milestone reached" "The first migration finished"
 python3 scripts/bark-notify.py --ping
 python3 scripts/bark-notify.py --doctor
 python3 scripts/bark-notify.py --dry-run --agent codex --level active "Build finished" "Ready"
@@ -133,15 +133,21 @@ The skill uses Bark's notification interruption levels:
 
 | Situation | Level |
 | --- | --- |
-| Progress update, background status, FYI | `passive` |
-| Requested task completed, or user explicitly asked for a normal notification | `active` |
+| Meaningful progress, requested task completed, or ordinary user-requested notification | `active` |
 | Agent is blocked and needs user input soon | `timeSensitive` |
 | Deployment failed, service unavailable, long task crashed | `timeSensitive` |
 | User explicitly requested an emergency/critical alert | `critical` |
+| User explicitly requested quiet/background delivery | `passive` |
 
-`passive` only enters Notification Center and does not light the screen. `active`
-is Bark's normal visible notification and should be used for user-requested task
-completion. `timeSensitive` can appear during a Focus mode when Bark and iOS
+First decide whether an update warrants a push. Skip routine tool activity, short
+tasks, tests merely starting or continuing, partial findings, and updates already
+visible in the active conversation. A useful progress instruction does not make
+every agent update notification-worthy.
+
+Default to `active` whenever a notification is worth sending, including meaningful
+progress and task completion. Reserve `passive` for cases where the user explicitly
+asks for quiet, background, or Notification Center-only delivery. If an update feels
+too minor for `active`, skip the push. `timeSensitive` can appear during a Focus mode when Bark and iOS
 are authorized for it. `critical` can ignore silent/Focus modes and should only
 be used for a real incident or an explicit emergency request.
 
