@@ -86,7 +86,7 @@ Agent metadata is optional and lives outside the repository at `~/.config/bark-n
 }
 ```
 
-Bark icons must be URLs reachable by the receiving device. Local `.app`, `.icns`, or filesystem paths are not valid notification icon values. If no icon URL is configured, omit the icon and still send the notification.
+Bark icons must be URLs reachable by the receiving device. Local `.app`, `.icns`, or filesystem paths are not valid notification icon values. If no `--icon` or agent icon is configured, use the built-in Agent Bark icon hosted from `assets/agent-bark.png` through jsDelivr. Resolution order is explicit `--icon`, agent environment/config, then the built-in default.
 
 ## Check
 

@@ -89,6 +89,8 @@ unset BARK_KEY
 
 Agent group and icon metadata can live in `~/.config/bark-notify-agents.json`:
 
+![Agent Bark default notification icon](assets/agent-bark.png)
+
 ```json
 {
   "codex": {
@@ -100,7 +102,9 @@ Agent group and icon metadata can live in `~/.config/bark-notify-agents.json`:
 
 The icon must be a URL reachable by the receiving iOS device. Common hosting
 choices include GitHub Pages, Cloudflare Pages, S3/R2, nginx, Caddy, or jsDelivr.
-If no icon URL is configured, the notification is still sent without a custom icon.
+When neither `--icon` nor an agent icon is configured, the skill uses the Agent
+Bark artwork above through its public jsDelivr URL. The precedence is explicit
+`--icon`, agent configuration or environment, then the built-in default.
 
 Environment variables override the agent JSON:
 
