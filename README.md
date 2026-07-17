@@ -1,5 +1,9 @@
 # Bark Notify Skill
 
+<p align="center">
+  <img src="assets/agent-bark.png" alt="Agent Bark icon" width="180">
+</p>
+
 [中文文档](README.zh-CN.md)
 
 Skill for sending [Bark](https://github.com/Finb/Bark) push notifications from agents.
@@ -88,8 +92,6 @@ unset BARK_KEY
 ## Agent Identity
 
 Agent group and icon metadata can live in `~/.config/bark-notify-agents.json`:
-
-![Agent Bark default notification icon](assets/agent-bark.png)
 
 ```json
 {

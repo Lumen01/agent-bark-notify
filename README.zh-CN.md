@@ -1,5 +1,9 @@
 # Bark Notify Skill
 
+<p align="center">
+  <img src="assets/agent-bark.png" alt="Agent Bark 图标" width="180">
+</p>
+
 [English README](README.md)
 
 供各类 Agent 发送 [Bark](https://github.com/Finb/Bark) 推送通知的技能。
@@ -79,8 +83,6 @@ unset BARK_KEY
 ## Agent 身份
 
 Agent 的分组和图标元数据可存放在 `~/.config/bark-notify-agents.json`：
-
-![Agent Bark 默认通知图标](assets/agent-bark.png)
 
 ```json
 {
