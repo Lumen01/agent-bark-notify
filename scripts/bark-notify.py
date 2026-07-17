@@ -13,6 +13,7 @@ from typing import Any
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "bark-notify.env"
 DEFAULT_AGENTS_PATH = Path.home() / ".config" / "bark-notify-agents.json"
 DEFAULT_SERVER = "https://api.day.app"
+DEFAULT_ICON = "https://cdn.jsdelivr.net/gh/Lumen01/agent-bark-notify@main/assets/agent-bark.png"
 
 
 def load_env_file(path: Path) -> dict[str, str]:
@@ -191,6 +192,8 @@ def main(
     agent = args.agent or os.environ.get("BARK_AGENT") or cfg.get("BARK_AGENT", "")
     agent_group, agent_group_source = agent_value(agent, "group", cfg, agents)
     agent_icon, agent_icon_source = agent_value(agent, "icon", cfg, agents)
+    icon = args.icon or agent_icon or DEFAULT_ICON
+    icon_source = "command line" if args.icon else agent_icon_source if agent_icon else "default"
     group = (
         args.group
         or agent_group
@@ -231,7 +234,7 @@ def main(
             "agents_file": {"path": str(selected_agents_path), "configured": selected_agents_path.exists()},
             "agent": {"name": agent or None, "configured": normalize_agent(agent) in agents if agent else False},
             "group": {"value": group, "source": group_source},
-            "icon": {"value": args.icon or agent_icon, "source": "command line" if args.icon else agent_icon_source},
+            "icon": {"value": icon, "source": icon_source},
             "ping": ping,
         }
         print(json.dumps(report, ensure_ascii=False))
@@ -242,7 +245,7 @@ def main(
     if not args.title:
         parser.error("title is required unless --ping, --doctor, or --save-config is used")
 
-    payload = build_payload(key, args.title, args.body, group, args, agent_icon)
+    payload = build_payload(key, args.title, args.body, group, args, icon)
     if args.dry_run:
         preview = {**payload, "device_key": "***"}
         print(json.dumps(preview, ensure_ascii=False))

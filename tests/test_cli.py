@@ -58,6 +58,12 @@ class BarkNotifyCliTest(unittest.TestCase):
         self.assertEqual(calls[0][1]["group"], "Codex")
         self.assertEqual(calls[0][1]["icon"], "https://example.com/codex.png")
 
+    def test_default_icon_is_used_when_no_icon_is_configured(self):
+        rc, calls, _ = run_main(["Done", "Ready"], env={"BARK_KEY": "test-key"})
+
+        self.assertEqual(rc, 0)
+        self.assertEqual(calls[0][1]["icon"], cli.DEFAULT_ICON)
+
     def test_explicit_group_and_icon_override_agent_defaults(self):
         with tempfile.TemporaryDirectory() as td:
             agents = Path(td) / "agents.json"
@@ -168,6 +174,19 @@ class BarkNotifyCliTest(unittest.TestCase):
         self.assertNotIn("secret-key", output)
         self.assertEqual(report["group"], {"value": "Codex", "source": "agent config"})
         self.assertEqual(report["icon"], {"value": "https://example.com/codex.png", "source": "agent config"})
+
+    def test_doctor_reports_default_icon_source(self):
+        with tempfile.TemporaryDirectory() as td:
+            config = Path(td) / "bark-notify.env"
+
+            rc, _, output = run_main(
+                ["--doctor"],
+                env={"BARK_KEY": "secret-key"},
+                config_path=config,
+            )
+
+        self.assertEqual(rc, 0)
+        self.assertEqual(json.loads(output)["icon"], {"value": cli.DEFAULT_ICON, "source": "default"})
 
 
 if __name__ == "__main__":
