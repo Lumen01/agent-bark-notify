@@ -6,6 +6,7 @@ on:
     paths:
       - SKILL.md
       - scripts/**
+      - assets/**
       - examples/**
       - agents/**
       - README.md
